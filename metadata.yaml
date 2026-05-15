@@ -1,0 +1,65 @@
+---
+title: "Reverse Engineering Embedded Firmware with radare2"
+subtitle: "A Practical Handbook for ARM, RISC-V, Xtensa, 8051, MIPS, and Linux"
+author: "Sylwester"
+date: "2026"
+lang: en-US
+documentclass: scrbook
+classoption:
+  - oneside
+  - 11pt
+geometry:
+  - paperwidth=7in
+  - paperheight=9.25in
+  - top=0.75in
+  - bottom=0.85in
+  - inner=0.85in
+  - outer=0.75in
+  - heightrounded
+toc: true
+toc-own-page: true
+toc-depth: 2
+numbersections: true
+secnumdepth: 2
+linkcolor: ebookblue
+urlcolor: ebookblue
+citecolor: ebookblue
+toccolor: black
+book: true
+titlepage: true
+titlepage-color: "0E3B5C"
+titlepage-text-color: "FFFFFF"
+titlepage-rule-color: "FFFFFF"
+titlepage-rule-height: 2
+titlepage-background: ""
+caption-justification: centering
+listings-no-page-break: true
+listings-disable-line-numbers: true
+disable-header-and-footer: false
+header-left: "\\leftmark"
+header-right: "\\rightmark"
+footer-left: "Reverse Engineering Embedded Firmware with radare2"
+footer-right: "\\thepage"
+code-block-font-size: \footnotesize
+header-includes:
+  - \usepackage{tcolorbox}
+  - \tcbuselibrary{breakable,skins}
+  - \newtcolorbox{notebox}{colback=blue!4!white,colframe=blue!50!black,fonttitle=\bfseries,title=Note,breakable,arc=1mm,boxrule=0.5pt,left=4pt,right=4pt,top=4pt,bottom=4pt}
+  - \newtcolorbox{warnbox}{colback=red!5!white,colframe=red!60!black,fonttitle=\bfseries,title=Warning,breakable,arc=1mm,boxrule=0.5pt,left=4pt,right=4pt,top=4pt,bottom=4pt}
+  - \newtcolorbox{tipbox}{colback=green!4!white,colframe=green!45!black,fonttitle=\bfseries,title=Tip,breakable,arc=1mm,boxrule=0.5pt,left=4pt,right=4pt,top=4pt,bottom=4pt}
+  - \newtcolorbox{cautionbox}{colback=orange!5!white,colframe=orange!75!black,fonttitle=\bfseries,title=Caution,breakable,arc=1mm,boxrule=0.5pt,left=4pt,right=4pt,top=4pt,bottom=4pt}
+mainfont: "Charter"
+sansfont: "Helvetica Neue"
+monofont: "Menlo"
+mainfontoptions:
+  - Numbers=OldStyle
+monofontoptions:
+  - Scale=0.85
+fontsize: 11pt
+linestretch: 1.15
+colorlinks: true
+links-as-notes: false
+listings: false
+code-block-listings: false
+highlight-style: tango
+---
