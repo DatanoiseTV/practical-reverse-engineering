@@ -244,7 +244,7 @@ adjacent string descriptions is a goldmine. Dump:
 ```
 
 If the table interleaves `function_address, "function_name_string"`,
-you can rename them in a loop with an r2pipe script (Chapter 22).
+you can rename them in a loop with an r2pipe script (Chapter 25).
 
 **Build IDs and compiler signatures.** Find them with:
 

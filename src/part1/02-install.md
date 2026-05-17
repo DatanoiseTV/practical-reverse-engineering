@@ -36,7 +36,7 @@ Verify the install:
 
 ```text
 $ r2 -v
-radare2 5.9.8 0 @ darwin-arm-64 git.5.9.8-12-g...
+radare2 6.1.4 +0 abi:83 @ darwin-arm_64 ...
 ```
 
 If you do prefer your distribution's package, `apt install radare2`,

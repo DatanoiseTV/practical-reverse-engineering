@@ -15,7 +15,8 @@ disassembly idioms you see most often. Use as a desk reference.
 | r13 (sp)| stack pointer                                               |
 | r14 (lr)| link register (return address)                              |
 | r15 (pc)| program counter                                             |
-| s0–s31, d0–d15 | floating-point (M4F/M7+)                             |
+| s0–s31         | single-precision FP (Cortex-M4F has SP-only FPv4-SP) |
+| d0–d15         | double-precision FP (Cortex-M7 with FPv5-D16 only)   |
 
 **Calling convention (AAPCS):**
 
@@ -45,7 +46,10 @@ pop  {r4-r7, pc}        ; restore + return
 | `0x00000000–0x1FFFFFFF`     | code                              |
 | `0x20000000–0x3FFFFFFF`     | SRAM                              |
 | `0x40000000–0x5FFFFFFF`     | peripherals                       |
-| `0xE0000000–0xE00FFFFF`     | system control space (NVIC, etc.) |
+| `0x60000000–0x9FFFFFFF`     | external RAM                      |
+| `0xA0000000–0xDFFFFFFF`     | external device                   |
+| `0xE0000000–0xE00FFFFF`     | Private Peripheral Bus (PPB) — SCS (NVIC, SysTick, SCB) sub-range at `0xE000E000–0xE000EFFF` |
+| `0xE0100000–0xFFFFFFFF`     | vendor-specific                   |
 
 **Vector table (first words at flash base):**
 
@@ -120,9 +124,10 @@ ret
 |--------------|------------------------------------------|
 | a0           | return address                           |
 | a1 (sp)      | stack pointer                            |
-| a2..a7       | arguments (windowed), also return values |
+| a2..a7       | arguments (windowed ABI)                 |
+| a2..a5       | return values (up to 16 bytes)           |
 | a8..a15      | local temporaries                        |
-| (more)       | window slides save/restore higher regs   |
+| (physical)   | up to 64 physical ARs; only 16 visible at once via the window |
 
 **Calling convention (windowed):**
 
@@ -214,7 +219,7 @@ encoding of common operations.
 | `$s0–$s7`   | 16–23  | callee-saved                      |
 | `$t8–$t9`   | 24–25  | temporaries; $t9 holds called fn  |
 | `$k0–$k1`   | 26–27  | kernel-reserved                   |
-| `$gp`       | 28     | global pointer                    |
+| `$gp`       | 28     | global pointer (caller-saved in PIC O32) |
 | `$sp`       | 29     | stack pointer                     |
 | `$fp / $s8` | 30     | frame pointer / saved             |
 | `$ra`       | 31     | return address                    |
@@ -223,7 +228,8 @@ encoding of common operations.
 
 * args: $a0..$a3, then stack
 * return: $v0 (and $v1 for 64-bit)
-* callee-saved: $s0..$s7, $sp, $fp, $gp, $ra
+* callee-saved: $s0..$s7, $sp, $fp, $ra
+* `$gp`: caller-saved in PIC O32, constant in non-PIC code
 * first 16 bytes of caller's stack reserved for arg spill
 
 **Common prologue:**
@@ -299,7 +305,8 @@ For raw byte identification:
 | `02 00 00 EA` | ARM unconditional branch (early ARM image) |
 | `27 BD FF E0` | MIPS BE `addiu $sp, -0x20`              |
 | `E0 FF BD 27` | MIPS LE same                            |
-| `13 ...`   | RISC-V compressed `c.addi` start            |
+| `13 ...` or `17 ...` | RISC-V RV32I uncompressed `OP-IMM` / `AUIPC` (low 2 bits = `11`) |
+| any byte with low 2 bits `00`/`01`/`10` | RISC-V compressed (RVC) |
 | `36 41 00` | Xtensa `entry a1, 0x20` (windowed entry)    |
 | `02 xx xx` | 8051 `LJMP` (vector table start)            |
 | `E9 xx xx xx xx` | x86 32-bit jump                       |

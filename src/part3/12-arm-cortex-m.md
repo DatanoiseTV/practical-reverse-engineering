@@ -9,8 +9,8 @@ SAMD), and a worked example.
 
 ## Architectural overview
 
-Cortex-M is an ARMv6-M (M0/M0+/M1), ARMv7-M (M3/M4/M7), or ARMv8-M
-(M23/M33/M55) profile. Key facts for reverse engineering:
+Cortex-M is an ARMv6-M (M0/M0+/M1), ARMv7-M (M3) / ARMv7E-M (M4/M7), or
+ARMv8-M (M23/M33) / ARMv8.1-M (M55) profile. Key facts for reverse engineering:
 
 * **Thumb-only.** Cortex-M cores execute Thumb-2 (M3/M4/M7) or a Thumb
   subset (M0/M0+). They do not execute classic ARM instructions. The
@@ -21,11 +21,17 @@ Cortex-M is an ARMv6-M (M0/M0+/M1), ARMv7-M (M3/M4/M7), or ARMv8-M
   * `0x08000000` — flash (STM32 convention; some vendors differ)
   * `0x20000000` — SRAM
   * `0x40000000` — peripherals
-  * `0xE0000000` — system control space (NVIC, SysTick, DWT, …)
-* **Vector table.** First N words of code start with: initial SP,
-  reset vector, NMI vector, HardFault vector, then 12 system handlers,
-  then external interrupt handlers. The number of external interrupts
-  is family-dependent (about 80 on a typical STM32F4).
+  * `0xE0000000`–`0xE00FFFFF` — Private Peripheral Bus (PPB). The
+    System Control Space (SCS — NVIC, SysTick, DWT, SCB) is a sub-range
+    at `0xE000E000`–`0xE000EFFF`.
+* **Vector table.** First 16 words of code are: initial SP, reset vector,
+  NMI, HardFault, then four ARMv7-M-only fault vectors (MemManage,
+  BusFault, UsageFault, plus SecureFault on v8-M), four reserved slots,
+  SVC, DebugMon, one reserved slot, PendSV, SysTick. External interrupt
+  handlers start at word 16. The number of external interrupts is
+  family-dependent (about 80 on a typical STM32F4). On ARMv6-M (M0/M0+)
+  the MemManage/BusFault/UsageFault slots are reserved — only HardFault
+  exists for all faults.
 * **AAPCS calling convention.** r0–r3 for arguments, return in r0,
   r4–r11 callee-saved, lr is the return address. This is the same as
   Linux ARM, just on smaller cores.
@@ -50,8 +56,11 @@ $ r2 -a arm -b 16 -c cortex -m 0x08000000 firmware.bin
 * `-c cortex` — the CPU profile (enables M-profile system register
   decoding such as MSR/MRS to PRIMASK, FAULTMASK, BASEPRI, CONTROL)
 * `-m 0x08000000` — STM32 flash base. For nRF52 application image use
-  `0x00026000` after the SoftDevice; for SAMD21 use `0x00002000` after
-  the bootloader; bare-flash images map at `0x00000000`.
+  the address just past the SoftDevice — `0x00026000` for S132 v7.x
+  (152 KiB) or `0x00027000` for S140 v7.x (156 KiB); older SoftDevice
+  versions end at lower addresses, so check the exact SoftDevice version
+  in flash. For SAMD21 use `0x00002000` after the UF2 bootloader;
+  bare-flash images map at `0x00000000`.
 
 ::: warning
 Some Cortex-M binaries you find in the wild are extracted from a
@@ -89,15 +98,20 @@ Reading this:
 * Words 2–15: standard exceptions. Names from the Cortex-M architecture:
 
 ```text
-[0x...]> f sym.NMI_Handler         = 0x08000231
-[0x...]> f sym.HardFault_Handler   = 0x08000235
-[0x...]> f sym.MemManage_Handler   = 0x08000239
-[0x...]> f sym.BusFault_Handler    = 0x0800023d
-[0x...]> f sym.UsageFault_Handler  = 0x08000241
-[0x...]> f sym.SVC_Handler         = 0x08000245
-[0x...]> f sym.DebugMon_Handler    = 0x08000249
-[0x...]> f sym.PendSV_Handler      = 0x0800024d
-[0x...]> f sym.SysTick_Handler     = 0x08000251
+# (handler addresses shown below are the resolved targets from the
+# example vector dump above, not the vector slot offsets — slots 7..10
+# and slot 13 are reserved on v7-M, with zero entries you should skip.)
+[0x...]> f sym.NMI_Handler         = 0x08000231   # vector slot 2 (offset 0x08)
+[0x...]> f sym.HardFault_Handler   = 0x08000235   # slot 3 (0x0C)
+[0x...]> f sym.MemManage_Handler   = 0x08000239   # slot 4 (0x10)
+[0x...]> f sym.BusFault_Handler    = 0x0800023d   # slot 5 (0x14)
+[0x...]> f sym.UsageFault_Handler  = 0x08000241   # slot 6 (0x18)
+# slots 7..10 (0x1C..0x28) reserved on v7-M (SecureFault occupies slot 7 on v8-M)
+[0x...]> f sym.SVC_Handler         = 0x08000245   # slot 11 (0x2C)
+[0x...]> f sym.DebugMon_Handler    = 0x08000249   # slot 12 (0x30)
+# slot 13 (0x34) reserved
+[0x...]> f sym.PendSV_Handler      = 0x0800024d   # slot 14 (0x38)
+[0x...]> f sym.SysTick_Handler     = 0x08000251   # slot 15 (0x3C)
 ```
 
 * Words 16+: external interrupts. The mapping is family-specific. For
@@ -198,11 +212,13 @@ bootloader's API in AN2606.
 ## nRF52-specific notes
 
 **SoftDevice.** The Bluetooth stack is a separately-flashed binary
-that lives at `0x00000000`–`0x00026000` (size depends on the
-SoftDevice version). The application starts above it. SoftDevice
-calls happen via SVC: a software interrupt with a service number.
-You will see `svc 0x60` (sd_ble_gap_adv_start), `svc 0x61`, etc. The
-mapping is in the `s132_nrf52_*_API/include/*.h` headers.
+that lives from `0x00000000` to the SoftDevice end (e.g., `0x00026000`
+for S132 v7.x; the size varies by version). The application starts
+above it. SoftDevice calls happen via SVC: a software interrupt with a
+service number. The BLE SVC range starts around `0x60` (`BLE_SVC_BASE`),
+so you will see calls in roughly that range and onwards (`sd_ble_*` are
+in the `0x60`–`0x9F` block, `sd_ble_gap_*` higher within it).
+The exact mapping is in the `s132_nrf52_*_API/include/*.h` headers.
 
 ::: note
 When loading an nRF52 dump that includes the SoftDevice, load both:

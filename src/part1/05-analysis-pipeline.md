@@ -230,7 +230,8 @@ expensive on big firmware; for incremental work, use the narrower commands:
 
 For multi-megabyte firmware, the whole `aaa` run can take minutes;
 narrow commands run in milliseconds. Save the project (`Ps`) before
-running `aaaa` so you can `Po` back to a clean state if it makes things
+running `aaaa` so you can re-open the saved project (`P name`, formerly
+`Po name`) to roll back to a clean state if it makes things
 worse.
 
 ## When to escalate to `aaaa`

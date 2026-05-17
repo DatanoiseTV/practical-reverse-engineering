@@ -300,7 +300,7 @@ ESIL:
 [0x...]> ax 0x0800123a 0x080020c4
 ```
 
-A short Python r2pipe loop (Chapter 23) iterates through every
+A short Python r2pipe loop (Chapter 25) iterates through every
 plausible index and adds xrefs for each. The decompiler then sees
 all the call destinations.
 
@@ -335,7 +335,7 @@ misses:
   are partially modelled).
 
 For floating-point or vector-heavy code, ESIL is not the right
-tool. Use Unicorn (Chapter 24) or hardware emulation.
+tool. Use Unicorn (Chapter 26) or hardware emulation.
 
 ## Putting it together
 

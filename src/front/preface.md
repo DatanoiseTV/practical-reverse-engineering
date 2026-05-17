@@ -1,70 +1,116 @@
 # Preface {-}
 
-Reverse engineering embedded firmware is a different sport from reversing
-desktop or server binaries. The targets are smaller, the symbols are gone,
-the file formats are weirder, and the assumption that you can just `objdump`
-something and get sensible output is wrong about half the time. The CPU might
-be a 1980s 8051 derivative pretending to be a Bluetooth chip, an Xtensa core
-spliced into an SoC by a company that never published the ABI, or a stock
-ARM Cortex-M with the vector table relocated by the bootloader so the addresses
-in the disassembly point nowhere useful until you do the math yourself.
+Reverse engineering is the discipline of recovering meaning from a
+binary you did not write. It is a single discipline, even though the
+targets and tools look very different. A stripped Linux daemon, a
+1980s 8051-derived Bluetooth chip, a raw flash dump from an
+appliance, a Windows DLL, an ESP32 OTA image, a vendor's WiFi
+driver: the surface details differ, but the underlying skill —
+loading the bytes correctly, recognising functions and data
+structures, following control and data flow, naming what you find,
+patching when you must — is the same.
 
-This handbook is about doing that work with **radare2** — the open-source,
-scriptable, multi-architecture reverse engineering framework that runs on
-basically anything and gets out of your way. Other tools have prettier UIs.
-Some have stronger decompilers (Ghidra, IDA). None match radare2's
-breadth of architecture support, scripting story, and command-line workflow
-once you have the muscle memory.
+This book teaches that skill across a deliberately wide spread of
+targets. The embedded side is covered in depth (it is where most
+practical work happens these days and where the tooling stories are
+weirdest), but the same chapters teach how to attack Linux userland
+binaries, kernel modules, router firmware, and anything else you
+load.
 
-The book is for working engineers: firmware developers who want to understand
-the binary their toolchain spits out, security researchers chasing IoT
-vulnerabilities, hardware hackers who just dumped a SPI flash and don't know
-where the entry point is, and embedded reverse engineers who already use
-radare2 occasionally and want to use it well.
+## Tools
 
-## What this book covers {-}
+Every chapter has to choose a primary tool to show commands in, or
+the prose becomes uselessly abstract. This book chooses **radare2**
+as the running example for one reason: it is the only fully free,
+fully open, fully scriptable disassembler that covers every
+architecture in this book without paid add-ons. The command grammar
+takes an hour to internalise (Chapter 3) and the rest comes easily.
+
+That choice is pragmatic, not exclusive. Where another tool does the
+job better — Ghidra for heavy decompilation on large C++ binaries,
+IDA Pro for industry-standard polish, Binary Ninja for cleaner UI,
+Frida for live instrumentation, binwalk for triage, Unicorn for
+emulation, Capstone/Keystone for scripting, esptool and OpenOCD for
+hardware interaction — the book says so and tells you when to reach
+for what. Chapter 25 surveys the broader toolkit; the per-target
+chapters call out tool alternatives inline; the LLM chapter
+(Chapter 28) covers using AI coding assistants for reverse
+engineering work.
+
+If you arrive at this book using IDA or Ghidra primarily, you can
+treat radare2 as a complementary tool worth knowing. The architecture
+chapters' content (vector table layouts, calling conventions, ABI
+gotchas, instruction encoding traps) transfers to any disassembler,
+and the playbook chapter (Chapter 29) is entirely tool-neutral.
+
+## Audience
+
+This book is for working engineers: firmware developers who want to
+understand the binary their toolchain spits out, security researchers
+chasing IoT and Linux vulnerabilities, hardware hackers who just
+dumped a SPI flash and don't know where the entry point is,
+malware analysts working on Linux samples, and anyone moving into
+embedded reverse engineering from desktop RE work.
+
+Some prior exposure to assembly is assumed — you should at least
+know what a register and a calling convention are. You do not need
+to have used radare2 before; Part I starts from "I have it installed
+and don't know what to type".
+
+## What this book covers
 
 The book is organised into five parts plus appendices.
 
-**Part I — Foundations** brings you from "I have radare2 installed" to
-"I can navigate a binary fluently". You will learn the command grammar
-(it is not like other disassemblers; it has a logic you have to internalise),
-how to load both well-formed ELFs and raw firmware blobs, and how to drive
+**Part I — Foundations** brings you from "I have my tools installed"
+to "I can navigate a binary fluently". The chapters cover installing
+the radare2 ecosystem, the command grammar (it is not like other
+disassemblers; there is a logic you have to internalise), how to
+load both well-formed ELFs and raw firmware blobs, and how to drive
 the analysis pipeline.
 
-**Part II — Static Analysis Toolkit** covers the tools you use every day
-once the binary is loaded: function recovery, type and structure annotation,
-decompilation through `r2ghidra` and `r2dec`, symbol recovery, and
-cross-reference following.
+**Part II — Static Analysis Toolkit** covers the tools you use every
+day once the binary is loaded: function recovery, type and structure
+annotation, decompilation through r2ghidra and r2dec (and notes on
+when to switch to a standalone Ghidra session), symbol recovery via
+zignatures, and cross-reference following.
 
-**Part III — Architectures** is the largest part, with one chapter each for
-ARM Cortex-M, ARM Cortex-A and Linux userland, Xtensa (the ESP32 family),
-RISC-V (ESP32-C-series, BL602, generic RV32), 8051, MIPS (the workhorse of
-consumer routers), and a chapter on Linux device drivers and the device
-tree (DTB/DTS) — because once you reach a Cortex-A SoC, the device tree
-is often the only honest documentation of the hardware you have.
+**Part III — Architectures** has one chapter each for ARM Cortex-M,
+ARM Cortex-A and Linux userland, Xtensa (the ESP32 family), RISC-V
+(ESP32-C-series, BL602, generic RV32), 8051, MIPS (the workhorse of
+consumer routers), and a chapter on Linux device drivers and the
+device tree (DTB/DTS) — once you reach a Cortex-A or MIPS SoC, the
+device tree is often the only honest documentation of the hardware
+you have.
 
-**Part IV — Firmware Workflows** is the part you reach for when the binary
-is not an ELF: how to load a raw flash dump, reconstruct a memory map from
-vector tables and MMIO accesses, dissect a multi-stage bootloader, debug
-with OpenOCD/J-Link/QEMU through r2's gdb remote, emulate selected functions
-with ESIL when you have no hardware, and write patches that actually fit.
+**Part IV — Firmware and Linux Workflows** covers raw-image loading,
+bootloaders and OTA blobs, dynamic analysis (GDB-remote, OpenOCD,
+J-Link, ESIL emulation), patching and re-flashing, mapping unknown
+boards via a pin-announcer firmware trick, and a chapter on Linux
+userland reverse engineering specifically — stripped daemons, libc
+fingerprinting, packers, anti-debug, and the patterns that show up
+in Linux malware.
 
-**Part V — Automation and Practice** covers `r2pipe` scripting (Python and JS)
-and a final chapter of caveats, gotchas, and the question of when to switch
-to a different tool. Some bugs in radare2 will bite you; some are won't-fix.
-Knowing which is which saves hours.
+**Part V — Automation, Tools, and Practice** covers `r2pipe` scripting,
+the broader toolkit (Ghidra, IDA, Binary Ninja, Cutter, binwalk,
+Capstone/Keystone/Unicorn, Qiling, Frida, esptool, OpenOCD, probe-rs,
+flashrom, Sigrok/Saleae, YARA, BinDiff/Diaphora), a chapter of generic
+reverse-engineering techniques that apply across every target
+(compiler fingerprinting, crypto recognition, C++ vtables and RTTI,
+runtime allocators, anti-disassembly defeat), LLM-assisted reverse
+engineering with verification discipline, the reverse engineer's
+playbook (recognition patterns, naming/note discipline, magic-number
+tables, dead-code hunting), and a final chapter of caveats, gotchas,
+and pitfalls.
 
-The **appendices** are designed to live next to your keyboard: a command
-cheatsheet organised by task, a per-architecture quick reference for
-registers and calling conventions, a file-format reference for ELF, the
-ESP image format, UF2, Intel HEX, S-Record, and the flattened device tree,
-and a curated list of further reading.
+The **appendices** are designed to live next to your keyboard: a
+command cheatsheet organised by task, a per-architecture quick
+reference for registers and calling conventions, a file-format
+reference, and a curated list of further reading.
 
-## Conventions {-}
+## Conventions
 
-Code, commands, and radare2 console interactions are set in a monospace
-font. Radare2 sessions are shown with the prompt that radare2 itself uses,
+Code, commands, and console sessions are set in a monospace font.
+Radare2 sessions are shown with the prompt that radare2 itself uses,
 so you can paste them into your own session unchanged:
 
 ```text
@@ -80,11 +126,11 @@ $ r2 -a arm -b 16 -m 0x08000000 firmware.bin
 
 C source, disassembly, and decompiler output are clearly labelled.
 
-Three callouts appear throughout the book:
+Four callouts appear throughout the book:
 
 ::: note
-A **Note** explains background context, points to related material, or
-clarifies a point that is easy to misread.
+A **Note** explains background context, points to related material,
+or clarifies a point that is easy to misread.
 :::
 
 ::: tip
@@ -94,23 +140,33 @@ once you know it.
 
 ::: warning
 A **Warning** flags a footgun: a command that will silently corrupt
-your project file, an analysis option that hides bugs, a per-architecture
-gotcha that has cost real engineers real days.
+your project file, an analysis option that hides bugs, a
+per-architecture gotcha that has cost real engineers real days.
 :::
 
-## Versions {-}
+::: caution
+A **Caution** flags something more serious than a warning: a
+destructive operation, an irreversible chip configuration, a hardware
+risk.
+:::
 
-The book targets **radare2 5.9.x** (the current stable line at time of
-writing). The vast majority of commands have been stable for years and
-will continue to work; where a feature is recent or unstable, the text
-calls it out.
+## Versions
 
-For decompilation, the book covers both **r2ghidra** (a port of Ghidra's
-decompiler that runs entirely inside r2) and **r2dec** (a smaller native
-JavaScript decompiler). Where output differs meaningfully, both are shown.
+The book targets the **radare2 6.x line** (current as of writing) and
+was verified against r2 6.1.4. The vast majority of commands have
+been stable since the 5.x series; where a feature is recent,
+deprecated, or unstable, the text calls it out.
 
-## Acknowledgements {-}
+For decompilation, the book covers both **r2ghidra** (a port of
+Ghidra's decompiler that runs entirely inside r2) and **r2dec** (a
+smaller native JavaScript decompiler). Where output differs
+meaningfully, both are shown. Standalone Ghidra is recommended in
+Chapter 25 for cases where the in-r2 decompiler falls short.
 
-The radare2 ecosystem exists because of a long line of contributors who
-chose to publish hard, niche, often thankless tooling for free. If this
-book has any value, that value is theirs first.
+## Acknowledgements
+
+The radare2 ecosystem, the Ghidra project, the binwalk maintainers,
+and the long line of open-source reverse-engineering tool authors
+exist because they chose to publish hard, niche, often thankless
+tooling for free. If this book has any value, that value is theirs
+first.

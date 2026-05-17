@@ -48,10 +48,10 @@ develop a sense of when to trust `pdg` directly.
 
 ::: tip
 `pdg` re-runs the decompiler on every invocation. For a function you
-will read many times, decompile once and copy the output to a comment:
+will read many times, decompile once and stash the output:
 
 ```text
-[0x...]> CC `pdg ~~?` @ sym.foo
+[0x...]> 'pdg @ sym.foo' > /tmp/foo.c
 ```
 
 Now `axt @ sym.foo` and any visual mode view shows the decompiled
@@ -214,7 +214,7 @@ A few patterns make all decompilers struggle.
 **Self-modifying code.** Common in obfuscated firmware, occasional in
 embedded bootloaders. Decompilers assume code is static; they can't
 follow runtime patches. Read the disassembly, simulate with ESIL
-(Chapter 20), or give up on auto-decompilation for that function.
+(Chapter 21), or give up on auto-decompilation for that function.
 
 **Hand-written assembly.** Vendor crypto routines, RTOS context
 switches, interrupt entry stubs. They use registers in ways the C ABI
@@ -251,7 +251,7 @@ decompiler in another, both following the cursor.
 [0x...]> for f in `afl ~ [3]`; do "echo === $f ==="; "pdg @ $f"; done > all.c
 ```
 
-…or in a Python r2pipe script (Chapter 22):
+…or in a Python r2pipe script (Chapter 25):
 
 ```python
 import r2pipe

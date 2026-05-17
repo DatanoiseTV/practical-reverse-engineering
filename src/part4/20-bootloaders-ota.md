@@ -186,13 +186,15 @@ For a known compression format, `binwalk` recognises the magic:
 | `FD 37 7A 58 5A 00`          | XZ                                    |
 | `28 B5 2F FD`                | Zstandard                             |
 | `42 5A 68`                   | bzip2                                 |
-| `89 4C 5A 4F 00 0D 0A 1A 0A` | LZO                                   |
-| `04 22 4D 18`                | LZ4                                   |
-| `73 71 73 68`                | squashfs                              |
-| `68 73 71 73`                | squashfs (LE)                         |
-| `19 85`                      | JFFS2                                 |
-| `E1 1F 00 00`                | YAFFS2                                |
-| `4F 4E 45 4C` ("ONEL")       | romfs                                 |
+| `89 4C 5A 4F 00 0D 0A 1A 0A` | lzop (LZO container)                  |
+| `04 22 4D 18`                | LZ4 frame                             |
+| `68 73 71 73`                | squashfs v4 (modern, little-endian)   |
+| `73 71 73 68`                | squashfs ≤3.x (legacy, big-endian)    |
+| `85 19` (LE) / `19 85` (BE)  | JFFS2 node (`JFFS2_MAGIC_BITMASK = 0x1985`) |
+| `2D 72 6F 6D 31 66 73 2D`    | romfs (`-rom1fs-` ASCII)              |
+
+YAFFS2 has no fixed file-magic; identify it structurally via
+`binwalk`'s YAFFS detector or by trying to mount with `unyaffs`.
 
 Decompress with the matching tool and continue.
 
@@ -275,9 +277,11 @@ the bootloader verifies it before jumping. With secure-boot enabled,
 the bootloader also verifies an Ed25519 signature.
 
 Reverse engineer the second-stage bootloader by extracting the
-`bootloader.bin` from offset 0x1000 of the flash image (size 0x7000
-typically). Treat it as a regular ESP32 image with its own segments
-(Chapter 14).
+`bootloader.bin` from the flash image. On the classic ESP32, the
+bootloader lives at flash offset `0x1000` and is bounded above by the
+partition table at `0x8000` (so up to ~28 KiB). On ESP32-S3, C3, C6,
+and H2 the bootloader sits at flash offset `0x0` instead. Treat it as
+a regular ESP image with its own segments (Chapter 14).
 
 ## Linux router OTA
 

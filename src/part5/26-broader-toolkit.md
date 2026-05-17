@@ -388,7 +388,7 @@ BinDiff is the standard. Workflow:
    actual code changes.
 
 For r2 users, the workflow is more manual — see the diff script in
-Chapter 24 — but you can also export r2 analysis to a format
+Chapter 25 — but you can also export r2 analysis to a format
 BinDiff understands via `BinExport`.
 
 ### Diaphora

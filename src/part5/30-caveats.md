@@ -23,10 +23,12 @@ name into call-comment annotations.
 with the same name as an existing one, the existing one is gone.
 Use unique names per checkpoint.
 
-**`Po project` re-opens a project but does not re-open the binary
-unless the project file remembers the path correctly.** Move the
-binary, and the project breaks silently — `pdf` produces nothing
-because the bytes are not loaded. Check `iI` after `Po`.
+**`P project` re-opens a project but does not re-open the binary
+unless the project file remembers the path correctly.** (`Po project`
+is the older, deprecated spelling — it still works as of r2 6.x but
+will warn.) Move the binary, and the project breaks silently — `pdf`
+produces nothing because the bytes are not loaded. Check `iI` after
+opening.
 
 **`o file 0xADDR` adds a mapping silently even if the address
 overlaps an existing mapping.** R2 does not warn. Two overlapping
@@ -38,7 +40,7 @@ duplicates with `o-N`.
 is good — you do not lose them — but if you copied a project from
 elsewhere, the hints come with it. If hints from a different binary
 or version sneak in, your disassembly is wrong in subtle ways.
-Audit with `ah` after `Po`.
+Audit with `ah` after re-opening any project.
 
 **`pdg` (r2ghidra) caches results per session.** If you renamed a
 function or changed a type, the cache may show stale output. Re-run

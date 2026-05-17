@@ -288,15 +288,20 @@ methods are called by the kernel. The structure has a fixed layout
 that you can recognise in the binary:
 
 ```c
+/* approximate shape; fields and their order have drifted across
+   kernel versions. In Linux 6.11+ `remove` returns void; pre-5.19
+   builds do not have `driver_managed_dma`. Treat the layout as a
+   guide, not as a fixed offset table. */
 struct platform_driver {
-    int (*probe)(struct platform_device *);
-    int (*remove)(struct platform_device *);
+    int  (*probe)(struct platform_device *);
+    int  (*remove)(struct platform_device *);     /* void in 6.11+ */
     void (*shutdown)(struct platform_device *);
-    int (*suspend)(struct platform_device *, pm_message_t);
-    int (*resume)(struct platform_device *);
+    int  (*suspend)(struct platform_device *, pm_message_t);
+    int  (*resume)(struct platform_device *);
     struct device_driver driver;
     const struct platform_device_id *id_table;
     bool prevent_deferred_probe;
+    /* bool driver_managed_dma;  added in 5.19 */
 };
 
 struct device_driver {

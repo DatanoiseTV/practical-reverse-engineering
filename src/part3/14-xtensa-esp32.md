@@ -1,8 +1,8 @@
 # Xtensa and the ESP32
 
-Xtensa is the architecture inside Espressif's ESP8266 (Xtensa LX106),
-the original ESP32 (Xtensa LX6, dual-core), and the ESP32-S2 / S3
-(Xtensa LX7). It is also inside a long tail of audio DSPs, smart-NIC
+Xtensa is the architecture inside Espressif's ESP8266 (Tensilica L106,
+single-core), the original ESP32 (Xtensa LX6, dual-core), the ESP32-S2
+(LX7, single-core), and the ESP32-S3 (LX7, dual-core). It is also inside a long tail of audio DSPs, smart-NIC
 ASICs, and other custom silicon — but for embedded reverse engineers
 the ESP family is the case that comes up. This chapter focuses on
 ESP32 firmware specifically.
@@ -22,18 +22,23 @@ ancient). It is weird in modern, deliberate ways:
 * **24-bit instructions** are common. Standard Xtensa instructions are
   24 bits; the "code density" extension adds 16-bit narrow encodings.
   Variable-length, byte-aligned. The decoder has to handle both.
-* **Register windows.** This is the big one. Xtensa has 64 physical
-  registers (a0..a63) but only 16 are visible at any time. Function
-  calls slide the window with `CALL4`, `CALL8`, `CALL12` instructions
-  — `CALLn` saves the *previous* `n` registers and rotates the window.
-  Reads of "high" registers are forbidden across the window boundary.
-* **Special return.** `RETW` returns and restores the window. Standard
-  `RET` exists but is only used in non-windowed contexts.
+* **Register windows.** This is the big one. Xtensa has up to 64
+  physical AR registers, but assembly only ever names `a0..a15`; the
+  window slides which physical ARs are visible under those names.
+  `CALL4`, `CALL8`, `CALL12` mark a window rotation by `n/4` register
+  groups (in `PS.CALLINC`); the callee's `ENTRY` instruction commits
+  the rotation and allocates the stack frame. When the window
+  underflows on `RETW`, exception handlers reload spilled registers
+  from the caller's stack — the spill is lazy, not eager.
+* **Special return.** `RETW` returns and rotates the window back.
+  Standard `RET` (no window slide) is used in the non-windowed CALL0
+  ABI.
 * **A1 is the stack pointer**, not A15.
-* **Constant width.** Two main calling conventions exist: the windowed
-  ABI (default for Xtensa) and the call0 ABI (windowless, used for
-  some performance-sensitive RTOS contexts and for ESP32-S2/S3
-  certain code paths).
+* **Two ABIs.** The windowed ABI is the default on ESP32 (classic) and
+  ESP32-S3. The CALL0 ABI (windowless) is the *default* on ESP32-S2 and
+  is selectable elsewhere for performance-sensitive or RTOS-context
+  code. Per-function ABI mismatches happen and need explicit `afc`
+  overrides.
 
 For r2's purposes, the windowed ABI is what you almost always see.
 R2's Xtensa support handles it, but the disassembly takes some getting
@@ -42,8 +47,8 @@ used to.
 ## Loading ESP32 firmware
 
 ESP32 firmware comes in Espressif's image format. Each `.bin` has an
-8-byte header followed by 1..N segments, each with its own load
-address. Use **esptool.py** to inspect:
+8-byte common header plus a 16-byte extended header (24 bytes total)
+followed by 1..N segments, each with its own load address. Use **esptool.py** to inspect:
 
 ```text
 $ esptool.py --chip esp32 image_info firmware.bin
@@ -58,19 +63,20 @@ Segment 1: len 0x07b48 load 0x40080000 file_offs 0x00000018  IRAM
 Segment 2: len 0x0d2a4 load 0x3ffb0000 file_offs 0x00007b68  DRAM
 ```
 
-Memory regions on ESP32 (from the technical reference manual):
+Memory regions on the original ESP32 (from the ESP32 Technical Reference
+Manual, §1.3 "System and Memory"):
 
 | Address                       | Region                        |
 |-------------------------------|-------------------------------|
-| `0x3FF00000–0x3FF7FFFF`       | DPort, AHB peripherals        |
-| `0x3FF80000–0x3FFBFFFF`       | RTC (slow)                    |
-| `0x3FFAE000–0x3FFFFFFF`       | DRAM (data, 320KB internal)   |
-| `0x40000000–0x4005FFFF`       | ROM (Espressif's bootloader)  |
-| `0x40070000–0x4007FFFF`       | Cache (IRAM-mapped flash)     |
-| `0x40080000–0x4009FFFF`       | IRAM (instructions, 128KB)    |
-| `0x400C0000–0x400C1FFF`       | RTC (fast)                    |
-| `0x400D0000–0x40400000`       | Flash, instruction-mapped     |
+| `0x3FF00000–0x3FF7FFFF`       | DPort / peripheral aliases    |
+| `0x3FFAE000–0x3FFFFFFF`       | DRAM (data-bus view of SRAM1+SRAM2) |
 | `0x3F400000–0x3F800000`       | Flash, data-mapped (rodata)   |
+| `0x40000000–0x4005FFFF`       | Internal ROM (Espressif's bootloader) |
+| `0x40070000–0x4009FFFF`       | IRAM (instruction-bus SRAM0)  |
+| `0x400C0000–0x400C1FFF`       | RTC fast memory               |
+| `0x400D0000–0x40400000`       | Flash, instruction-mapped     |
+| `0x50000000–0x50001FFF`       | RTC slow memory (8 KiB)       |
+| `0x60000000–0x600FFFFF`       | AHB peripherals               |
 
 So a typical ESP32 image has:
 
@@ -226,8 +232,9 @@ Reading this:
   `a0` or `a1`.
 * `a0` is the return address; `a1` is the stack pointer.
 * `l32r aX, label` is "load 32-bit relative" — the literal lives in a
-  literal pool somewhere within ±256 KB. The disassembler resolves it
-  to the underlying value.
+  literal pool at a *lower* address than the instruction (negative
+  PC-relative offset only, up to ~256 KiB before the PC). The
+  disassembler resolves it to the underlying value.
 * `RETW.N` (the `.N` suffix means narrow encoding) is the windowed
   return. If you see `RET` in a function with `ENTRY`, something is
   wrong (probably non-windowed code in a windowed context — rare).
@@ -259,7 +266,7 @@ core-affinity-locked. For reverse engineering:
 
 * `xPortGetCoreID()` calls return 0 or 1 — control flow that branches
   on this is core-specific.
-* The two `pcCurrentTCB` arrays (one per core) are at known addresses
+* The two `pxCurrentTCB` entries (one per core) are at known addresses
   in DRAM if you have ESP-IDF symbols.
 * Interrupt allocation (`esp_intr_alloc`) takes a CPU affinity argument.
 
@@ -292,8 +299,10 @@ can continue.
 
 ## Encrypted flash
 
-ESP32 supports flash encryption — flash content is XTS-AES encrypted
-at rest, decrypted by the cache controller on read. A flash dump from
+ESP32 supports flash encryption — flash content is encrypted at rest
+and decrypted by the cache controller on read. The original ESP32
+uses an AES-256 custom mode with an address-tweaked key; ESP32-S2,
+S3, and the RISC-V C-series use XTS-AES. A flash dump from
 an encryption-enabled device is opaque ciphertext. You need either:
 
 * the eFuse encryption key (typically not extractable),

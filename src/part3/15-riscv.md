@@ -106,16 +106,17 @@ The ESP32-C3 is a single-core RV32IMC chip. The C6 adds an LP
 slightly different memory maps. From a reverse engineering
 standpoint they look like ARM Cortex-M with a different ISA.
 
-Memory map for ESP32-C3:
+Memory map for ESP32-C3 (per the ESP32-C3 TRM §3):
 
 | Address                       | Region                       |
 |-------------------------------|------------------------------|
-| `0x40000000–0x40060000`       | ROM                          |
-| `0x40380000–0x403E0000`       | IROM (cache, flash-mapped)   |
-| `0x4037C000–0x40380000`       | IRAM                         |
-| `0x3FC80000–0x3FCE0000`       | DRAM                         |
-| `0x42000000–0x42800000`       | DROM (rodata, flash-mapped)  |
-| `0x60000000–0x600D0000`       | Peripherals                  |
+| `0x3C000000–0x3C800000`       | DROM (rodata, flash data-bus mapped) |
+| `0x3FC80000–0x3FCE0000`       | DRAM (data-bus view of SRAM, 400 KiB) |
+| `0x40000000–0x4005FFFF`       | Internal ROM                 |
+| `0x4037C000–0x403DFFFF`       | IRAM (instruction-bus view of SRAM) |
+| `0x42000000–0x42800000`       | IROM (flash code, instruction-bus mapped) |
+| `0x50000000–0x50001FFF`       | RTC fast memory              |
+| `0x60000000–0x600FFFFF`       | Peripherals                  |
 
 The image format is the same Espressif format as ESP32 (Chapter 14).
 The same multi-segment loading approach applies. ROM symbol files
@@ -123,13 +124,15 @@ exist in ESP-IDF under `components/esp_rom/esp32c3/ld/`.
 
 ## BL602 specifics
 
-Bouffalo Lab's BL602 is a single-core RV32IMAC at 192 MHz with an
-802.11 b/g/n WiFi MAC integrated. Memory map highlights:
+Bouffalo Lab's BL602 is a single-core RV32IMAC (up to 192 MHz) with an
+802.11 b/g/n WiFi MAC integrated. Memory map highlights (per the BL602
+Reference Manual):
 
-* Flash mapped at `0x23000000`
-* ITCM (instruction tightly-coupled memory) at `0x22020000`
-* DTCM at `0x42008000`
-* SRAM at `0x42000000`
+* Boot ROM at `0x21000000`
+* ITCM (instruction tightly-coupled memory) at `0x22014000`
+* DTCM at `0x42014000`
+* Main SRAM at `0x42000000`–`0x42013FFF`
+* Flash (XIP) at `0x23000000`
 * Peripherals at `0x40000000`
 
 The vendor SDK is open-source (`bl_iot_sdk`). Build the SDK once
@@ -210,9 +213,11 @@ CSR numbers (12-bit) and names are part of the spec:
 * `mip` (0x344)
 * `mhartid` (0xF14) — hart ID; useful for SMP code
 
-Vendor-specific CSRs in the `0x7Cx` and `0xBCx` ranges are common. ESP32-C
-chips use these for vendor extensions; values come from the
-`riscv-private.h` headers in ESP-IDF.
+Vendor-specific (custom) M-mode CSRs live in `0xBC0`–`0xBFF` (MRW) and
+`0xFC0`–`0xFFF` (MRO). The `0x7C0`–`0x7FF` range is M-mode-only debug
+custom — accessing those CSRs from non-debug code traps. ESP32-C
+chips use the custom ranges for vendor extensions; values come from
+the `riscv-private.h` headers in ESP-IDF.
 
 R2 decodes CSR access correctly for the standard set; for vendor CSRs
 you may see `csrr a0, 0x7c1` instead of a name. Annotate with `CC`
@@ -239,7 +244,7 @@ lui   a0, 0x12345         ; upper 20 bits
 addi  a0, a0, 0x678       ; lower 12 bits -> a0 = 0x12345678
 ```
 
-A2 ESL (and decompilers) collapse this to `a0 = 0x12345678`.
+R2's ESIL (and decompilers) collapse this pair to `a0 = 0x12345678`.
 
 **`jal zero` is an unconditional jump:**
 
@@ -279,9 +284,11 @@ instructions, update r2 from git.
 
 **Interrupt vector layout differs.** Standard RISC-V uses a single
 trap vector (`mtvec` direct mode) with software dispatch on
-`mcause`. Some vendor extensions (CLIC, CLINT-vectored) use a
-table of vectors instead. ESP32-C3 uses CLIC; the layout is in the
-TRM.
+`mcause`. Some vendor extensions (CLIC, CLINT-vectored mode) use a
+table of vectors instead. ESP32-C3 uses Espressif's "Interrupt Matrix"
+to route up to 31 peripheral sources through CLINT-style core
+interrupts — it is *not* CLIC. Some newer Espressif RISC-V parts
+(ESP32-P4 and some C-series configurations) do use CLIC.
 
 **Calling convention for floats.** Soft-float (no `F` extension):
 floats pass in `a0..a7`. Hard-float (`F`/`D`): floats in `fa0..fa7`.

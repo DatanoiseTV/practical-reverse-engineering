@@ -76,8 +76,12 @@ seen each:
   or a literal pool followed by code.
 * **MIPS**: bytes like `27 BD FF E0` (big-endian `ADDIU $sp, $sp, -0x20`)
   or `E0 FF BD 27` (little-endian).
-* **RISC-V**: bytes like `13 ... ...` (compressed-encoding pattern) or
-  the pattern of `auipc/addi` for global pointer setup.
+* **RISC-V**: bytes whose low byte ends in `11` binary (low 2 bits =
+  `11`) are uncompressed 32-bit instructions; `0x13` (RV32I `OP-IMM`,
+  the `addi` family) and `0x17` (`AUIPC`) at function entries are
+  typical. Bytes ending in `00`/`01`/`10` are 16-bit compressed (RVC)
+  instructions. The `auipc/addi` pair for global-pointer setup is a
+  strong tell.
 * **Xtensa**: 24-bit instructions that look statistically lumpy; first
   bytes often `36 41 00` (entry instruction) or similar.
 * **8051**: `02 xx xx` (LJMP) at offset 0; very low-density.

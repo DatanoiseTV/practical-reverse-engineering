@@ -277,7 +277,7 @@ wz str                                # write null-terminated string
 wa "asm"                              # assemble & write
 waf file                              # assemble & write from file
 wo* args                              # ops (xor, and, or, add, sub)
-wb byte                               # repeat byte over range
+wb pattern                            # write a byte pattern (cycles `pattern` across the current block size; set with `b N`)
 wn N value                            # write N-byte int
 wv value                              # write 32-bit
 wf path                               # write file at cursor
@@ -293,7 +293,7 @@ wB                                    # commit cache to file
 ```text
 P                                     # project commands
 Ps name                               # save project
-Po name                               # open project
+P name                                # open project (r2 ≥ 5.9; older `Po name` still works but is deprecated)
 P+                                    # save with current name
 P-                                    # delete project
 P*                                    # export project as r2 commands

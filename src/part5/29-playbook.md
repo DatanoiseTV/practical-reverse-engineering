@@ -164,7 +164,7 @@ A working project, in addition to the binary and notes:
 
 Many problems get easier when you have a comparison.
 
-**Diff two firmware versions.** Chapter 24 has the script. Look at
+**Diff two firmware versions.** Chapter 25 has the script. Look at
 the changed functions. Bug fixes leak: the function that got fixed
 is a clue to what was broken in the prior version, which is a
 candidate vulnerability for users who have not updated yet.

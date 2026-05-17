@@ -158,7 +158,7 @@ manually:
 Now `axt @ 0x08010000` reports the call site. The decompiler also picks
 up the resolution and renders meaningful names (if you set them).
 
-For very large dispatch tables, write an r2pipe script (Chapter 22)
+For very large dispatch tables, write an r2pipe script (Chapter 25)
 that walks the table and emits `ax` commands.
 
 ## Following data flow
@@ -180,7 +180,7 @@ ESIL emulation runs a function symbolically:
 Step through a function until you reach the line whose data flow you
 want to inspect, then read registers. For a constant-folding question
 ("what value reaches this comparison?"), this is faster than reading
-the disassembly cold. Chapter 20 covers ESIL in depth.
+the disassembly cold. Chapter 21 covers ESIL in depth.
 
 Type propagation (`aft`) follows variables through a function based on
 the types you set:

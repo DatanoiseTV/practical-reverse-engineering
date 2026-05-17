@@ -261,7 +261,7 @@ types, flags, configuration — to disk so you can resume later.
 Save the current session:
 
 ```text
-[0x08000000]> Ps router-fw-2024-05
+[0x08000000]> Ps router-fw-2024-05      # save project
 ```
 
 Open later:

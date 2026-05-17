@@ -1,8 +1,9 @@
 ---
-title: "Reverse Engineering Embedded Firmware with radare2"
-subtitle: "A Practical Handbook for ARM, RISC-V, Xtensa, 8051, MIPS, and Linux"
-author: "Sylwester"
-date: "2026"
+title: "Practical Reverse Engineering"
+subtitle: "Embedded Firmware, Linux Userland, and the Techniques That Work on Both"
+author: "DatanoiseTV"
+date: "2026-05-17"
+version: "1.0.0"
 lang: en-US
 documentclass: scrbook
 classoption:

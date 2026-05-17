@@ -97,8 +97,11 @@ $ arm-none-eabi-objcopy -I srec -O binary firmware.s19 firmware.bin
 
 ## UF2 (USB Flashing Format)
 
-**Magic:** every 512-byte block starts with `55 46 32 0A` ("`UF2\n`")
-twice (start and end markers).
+**Magic:** every 512-byte block starts with two 32-bit magic words:
+`magicStart0 = 0x0A324655` (on disk: `55 46 32 0A`, which is the ASCII
+`UF2` followed by `0x0A`) at offset 0, and `magicStart1 = 0x9E5D5157`
+at offset 4. Each block ends with `magicEnd = 0x0AB16F30` at offset
+`0x1FC`.
 
 **Block layout** (512 bytes):
 
@@ -140,7 +143,7 @@ Or `uf2utils.py` (Python).
 0x04: 4-byte entry point (little-endian)
 0x08: extended header (ESP32+)
 0x18: segment headers + payloads
-last 16 bytes: SHA-256 of image (ESP32+, optional)
+last 32 bytes: SHA-256 of image (ESP32+, when hash_appended=1)
 ```
 
 Each segment header (8 bytes): load address (4) + length (4),
@@ -228,7 +231,10 @@ See Chapter 18 for reading DTS.
 
 ## SquashFS
 
-**Magic:** `73 71 73 68` (BE) or `68 73 71 73` (LE) at offset 0.
+**Magic:** `68 73 71 73` at offset 0 for modern squashfs v4 (little-endian,
+the format in essentially every router firmware since ~2009). Legacy
+squashfs ≤3.x is big-endian with `73 71 73 68` and is now extremely
+rare.
 
 **Recognise:** binwalk identifies it.
 
@@ -241,7 +247,9 @@ $ sasquatch firmware.squashfs       # for vendor-modified variants
 
 ## JFFS2
 
-**Magic:** `19 85` at the start of each node.
+**Magic:** `JFFS2_MAGIC_BITMASK = 0x1985` at the start of each node.
+On little-endian flashes (the common case) the bytes on disk are
+`85 19`; big-endian flashes show `19 85`.
 
 **Extract:** `jefferson` (Python tool) handles most variants.
 
@@ -265,16 +273,16 @@ Older read-only filesystems. Magic `45 3D CD 28` (CramFS) and
 | `28 B5 2F FD`                | Zstandard      | `zstd -d`                      |
 | `04 22 4D 18`                | LZ4 frame      | `lz4 -d`                       |
 | `89 4C 5A 4F 00 0D 0A 1A 0A` | LZO            | `lzop -d`                      |
-| `4F 4E 45 4C` ("ONEL")       | romfs          | `unromfs` (variants exist)     |
 | `50 4B 03 04`                | ZIP            | `unzip`                        |
 | `52 61 72 21 1A 07`          | RAR            | `unrar`                        |
 | `Rar!`                       | ditto, ASCII   | `unrar`                        |
 
 ## Cryptographic blobs
 
-**X.509 certificate:** starts with `30 82` (DER SEQUENCE, 2-byte
-length). Often inside `-----BEGIN CERTIFICATE-----` PEM headers
-when in text form.
+**X.509 certificate:** for the common size range (256 B – 64 KiB), the
+DER-encoded cert starts with `30 82` (SEQUENCE with 2-byte length).
+Smaller certs are `30 81 LL`, larger are `30 83 LL LL LL`. Often inside
+`-----BEGIN CERTIFICATE-----` PEM headers when in text form.
 
 **RSA public key (PKCS#1 DER):** starts with `30 82` for the
 SEQUENCE, then INTEGER (modulus) and INTEGER (exponent).

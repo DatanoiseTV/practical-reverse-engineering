@@ -85,7 +85,7 @@ safe. These are judgements you make.
 ### Workflow 1: Function naming pass
 
 For a binary with hundreds of unnamed functions, the bulk-naming
-script in Chapter 24 produces names like `ref_error_invalid_handle`.
+script in Chapter 25 produces names like `ref_error_invalid_handle`.
 Better names need understanding the function, which is where an LLM
 helps.
 
@@ -135,7 +135,7 @@ the architecture is too unusual for the model.
 
 ::: warning
 Always commit to a project save *before* running an LLM-driven
-naming pass, so you can `Po` back if the names turn out to be
+naming pass, so you can re-open the saved project (`P name`) to roll back if the names turn out to be
 garbage. LLM-generated names are easy to write and tedious to undo.
 :::
 

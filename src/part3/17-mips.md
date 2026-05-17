@@ -21,8 +21,11 @@ The relevant MIPS variants in embedded Linux:
   binaries. Some Lantiq parts.
 * **MIPS64** — used in some high-end gear (Cavium Octeon, some Broadcom
   network processors). Layout differs significantly.
-* **microMIPS / MIPS16e** — 16-bit-encoded variants for size-constrained
-  code. Common in embedded ROM.
+* **microMIPS / MIPS16e** — alternative ISA encodings with mixed 16/32-bit
+  instructions for size-constrained code. They are *separate encoding
+  tables* signalled by the ISA-mode bit (the low bit of the jump target);
+  the CPU switches between standard MIPS and the alternative encoding
+  via `JR.HB` to an address with the ISA bit set. Common in embedded ROM.
 
 Big-endian is the default in the wild for legacy reasons (most
 historical MIPS firmware is BE), but little-endian MIPS exists too
@@ -139,7 +142,7 @@ $ xxd firmware.bin | head -1
 00000000: 27bd ffe0 afbf 001c afb0 0018 ...
 ```
 
-`0x27` is `0001 0011` — top 6 bits `0010 01` = 0x09 (ADDIU). That is
+`0x27` is `0010 0111` — top 6 bits `001001` = 0x09 (ADDIU). That is
 a frame allocation: `ADDIU $sp, $sp, -0x20`. Big-endian.
 
 If we read it little-endian we get `0xffffbd27` which decodes to
@@ -183,8 +186,12 @@ The dominant MIPS userspace ABI is O32:
 
 * Arguments: `$a0..$a3` (first 4), then stack
 * Return: `$v0` (and `$v1` for 64-bit returns)
-* Caller-saved: `$at`, `$t0..$t9`, `$v0..$v1`
-* Callee-saved: `$s0..$s7`, `$gp`, `$sp`, `$fp`, `$ra`
+* Caller-saved: `$at`, `$v0..$v1`, `$a0..$a3`, `$t0..$t9`
+* Callee-saved: `$s0..$s7`, `$sp`, `$fp`, `$ra`
+* `$gp` — in PIC O32 (the common case for Linux userland), `$gp` is
+  caller-saved: every PIC function call may clobber it, so the caller
+  spills it across calls if needed. In non-PIC code, `$gp` is treated
+  as effectively constant after boot.
 * Stack alignment: 8-byte
 * The first 16 bytes of the caller's stack are reserved for spilling
   `$a0..$a3` if needed
@@ -270,10 +277,12 @@ address is wrong, both halves point to nothing.
 ```
 
 **`jal` (Jump And Link) destination is in the same 256 MiB region.**
-The 26-bit target field is OR'd with the high 6 bits of the current
-PC. If your binary spans a 256 MiB boundary, `jal` cannot reach
-across, so the compiler emits `jalr $t9` style indirect calls. This
-trips up automatic xref recovery; check `axt` for missing edges.
+The 26-bit target is left-shifted by 2 and concatenated with the top
+4 bits of `PC+4` to form the 32-bit destination (`(PC+4)[31:28] ||
+target[25:0] || 00`). If your binary spans a 256 MiB boundary, `jal`
+cannot reach across, so the compiler emits `jalr $t9` style indirect
+calls. This trips up automatic xref recovery; check `axt` for missing
+edges.
 
 **MIPS16e and microMIPS use the same opcode space as base MIPS, in
 different bits.** Mixed-mode binaries exist; r2 needs hints (`ahb 16`)

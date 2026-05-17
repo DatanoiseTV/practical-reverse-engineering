@@ -149,8 +149,11 @@ If the build-ID is in a public debuginfod (e.g., the
 
 * Arguments: x0..x7 (integer), v0..v7 (float)
 * Return: x0 (and x1 for 128-bit)
-* Variadic: same registers, more on stack
-* Callee-saved: x19..x28, v8..v15 (low 64 bits)
+* Variadic: same registers, more on stack (standard AAPCS64 / Linux).
+  Apple's darwin-arm64 ABI is different — variadics there go entirely
+  on the stack. Worth knowing when reverse engineering macOS/iOS native
+  binaries.
+* Callee-saved: x19..x28, v8..v15 (only low 64 bits of v8..v15)
 * Stack alignment: 16-byte at function entry
 
 For r2:
@@ -276,10 +279,11 @@ MTE) put metadata in those bits. R2's analysis treats them as
 opaque; do not be surprised if a "pointer" has nonsense in the high
 byte.
 
-**BTI / PAC.** ARMv8.5+ adds Branch Target Identification and Pointer
-Authentication. Function entry instructions like `bti c`,
-`paciasp`, `autiasp` show up. They are NOPs on hardware that does
-not implement the feature; r2 decodes them but does not currently
+**PAC / BTI.** ARMv8.3-A adds Pointer Authentication (`paciasp`,
+`autiasp`, etc.) and ARMv8.5-A adds Branch Target Identification
+(`bti c/j/jc`). Function entry instructions for these show up
+throughout modern AArch64 binaries. They are NOPs on hardware that
+does not implement the feature; r2 decodes them but does not currently
 treat them specially during analysis.
 
 **Linker-relaxation tricks.** Some ARM linkers can rewrite a
