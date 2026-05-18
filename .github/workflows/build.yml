@@ -1,0 +1,172 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags:     ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+env:
+  PANDOC_VERSION:   "3.9.0.2"
+  TECTONIC_VERSION: "0.16.0"
+  NODE_VERSION:     "20"
+
+jobs:
+
+  build-pdf:
+    name: PDF (Pandoc + Tectonic)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Pandoc
+        id: cache-pandoc
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/pandoc
+          key:  pandoc-${{ env.PANDOC_VERSION }}-${{ runner.os }}
+
+      - name: Install Pandoc
+        if: steps.cache-pandoc.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.local/pandoc
+          curl -fsSL \
+            "https://github.com/jgm/pandoc/releases/download/${PANDOC_VERSION}/pandoc-${PANDOC_VERSION}-linux-amd64.tar.gz" \
+            | tar xz -C ~/.local/pandoc --strip-components=1
+
+      - name: Cache Tectonic
+        id: cache-tectonic
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/bin/tectonic
+          key:  tectonic-${{ env.TECTONIC_VERSION }}-${{ runner.os }}
+
+      - name: Install Tectonic
+        if: steps.cache-tectonic.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.local/bin
+          curl -fsSL \
+            "https://github.com/tectonic-typesetting/tectonic/releases/download/tectonic@${TECTONIC_VERSION}/tectonic-${TECTONIC_VERSION}-x86_64-unknown-linux-musl.tar.gz" \
+            | tar xz -C ~/.local/bin
+
+      - name: Install fonts
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y fonts-charis fonts-dejavu fonts-liberation
+          fc-cache -f
+
+      - name: Swap mac fonts for Linux substitutes
+        # GitHub runners don't have macOS Charter / Helvetica / Menlo.
+        # Use widely-available substitutes during CI builds only;
+        # the committed metadata.yaml stays mac-friendly.
+        run: |
+          sed -i \
+            -e 's/^mainfont:.*/mainfont: "Charis SIL"/' \
+            -e 's/^sansfont:.*/sansfont: "DejaVu Sans"/' \
+            -e 's/^monofont:.*/monofont: "DejaVu Sans Mono"/' \
+            metadata.yaml
+          grep -E '^(mainfont|sansfont|monofont):' metadata.yaml
+
+      - name: Build PDF
+        run: |
+          export PATH="$HOME/.local/pandoc/bin:$HOME/.local/bin:$PATH"
+          pandoc --version | head -1
+          tectonic --version
+          ./build.sh
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf
+          path: build/r3vbook.pdf
+          if-no-files-found: error
+
+  build-html:
+    name: HTML (VitePress)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: web/package.json
+
+      - name: Build HTML
+        run: ./scripts/build-html.sh
+
+      - name: Upload HTML artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: html
+          path: web/dist/
+          if-no-files-found: error
+
+  deploy-pages:
+    name: Deploy HTML to GitHub Pages
+    needs: build-html
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download HTML artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: html
+          path: site/
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token:    ${{ secrets.GITHUB_TOKEN }}
+          publish_dir:     ./site
+          publish_branch:  gh-pages
+          commit_message:  "deploy: ${{ github.sha }}"
+
+  release:
+    name: Create GitHub Release
+    needs: [build-pdf, build-html]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download PDF
+        uses: actions/download-artifact@v4
+        with:
+          name: pdf
+          path: ./
+
+      - name: Download HTML
+        uses: actions/download-artifact@v4
+        with:
+          name: html
+          path: html/
+
+      - name: Package release artifacts
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          zip -qr "practical-reverse-engineering-${tag}-html.zip" html/
+          mv r3vbook.pdf "practical-reverse-engineering-${tag}.pdf"
+          ls -la *.pdf *.zip
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          name:           ${{ github.ref_name }}
+          tag_name:       ${{ github.ref_name }}
+          body_path:      CHANGELOG.md
+          draft:          false
+          prerelease:     false
+          files: |
+            practical-reverse-engineering-${{ github.ref_name }}.pdf
+            practical-reverse-engineering-${{ github.ref_name }}-html.zip

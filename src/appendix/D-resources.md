@@ -1,4 +1,4 @@
-# Appendix D: Further Reading
+# Further Reading
 
 The reverse-engineering and embedded-systems communities are
 fragmented across blogs, conference talks, GitHub repositories, and

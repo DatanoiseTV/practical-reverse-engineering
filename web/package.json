@@ -1,0 +1,15 @@
+{
+  "name": "practical-reverse-engineering-web",
+  "private": true,
+  "version": "1.0.0",
+  "description": "VitePress site for the Practical Reverse Engineering book.",
+  "type": "module",
+  "scripts": {
+    "dev": "vitepress dev .",
+    "build": "vitepress build .",
+    "preview": "vitepress preview ."
+  },
+  "devDependencies": {
+    "vitepress": "^1.5.0"
+  }
+}

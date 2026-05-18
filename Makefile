@@ -1,10 +1,24 @@
-.PHONY: all build clean watch tools-check
+.PHONY: all build pdf html clean watch tools-check serve dev
 
 PDF := build/r3vbook.pdf
 
-all: build
+all: pdf html
 
 build: $(PDF)
+pdf:   $(PDF)
+
+html:
+	./scripts/build-html.sh
+
+# VitePress dev server with hot-reload, served at http://localhost:5173.
+# Useful while iterating on styling or content.
+dev:
+	./scripts/build-html.sh --dev-only || true
+	cd web && npx vitepress dev .
+
+# Serve the production build over a static HTTP server (post-build).
+serve: html
+	@cd web/dist && python3 -m http.server 8080
 
 $(PDF): metadata.yaml template/eisvogel.latex template/callouts.lua \
         $(wildcard src/front/*.md) \
@@ -17,7 +31,9 @@ $(PDF): metadata.yaml template/eisvogel.latex template/callouts.lua \
 	./build.sh
 
 clean:
-	rm -rf build
+	rm -rf build web/dist web/.vitepress/cache web/.vitepress/sidebar.json
+	rm -rf web/front web/part1 web/part2 web/part3 web/part4 web/part5 web/appendix
+	rm -f  web/index.md
 
 # Rebuild whenever any source file changes (requires fswatch or inotifywait).
 watch:
@@ -33,5 +49,9 @@ watch:
 tools-check:
 	@command -v pandoc   >/dev/null || { echo "missing: pandoc";   exit 1; }
 	@command -v tectonic >/dev/null || { echo "missing: tectonic"; exit 1; }
+	@command -v node     >/dev/null || { echo "missing: node";     exit 1; }
+	@command -v npm      >/dev/null || { echo "missing: npm";      exit 1; }
 	@echo "pandoc:   $$(pandoc --version | head -1)"
 	@echo "tectonic: $$(tectonic --version 2>&1 | head -1)"
+	@echo "node:     $$(node --version)"
+	@echo "npm:      $$(npm --version)"

@@ -1,4 +1,4 @@
-# Appendix C: File Format Reference
+# File Format Reference
 
 Concise reference for the file formats you encounter in embedded
 firmware reverse engineering. For each: the magic bytes, the layout,

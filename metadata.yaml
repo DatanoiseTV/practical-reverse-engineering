@@ -1,6 +1,6 @@
 ---
 title: "Practical Reverse Engineering"
-subtitle: "Embedded Firmware, Linux Userland, and the Techniques That Work on Both"
+subtitle: "A Field Guide for ARM, RISC-V, Xtensa, 8051, MIPS, and Linux"
 author: "DatanoiseTV"
 date: "2026-05-17"
 version: "1.0.0"
@@ -39,7 +39,7 @@ listings-disable-line-numbers: true
 disable-header-and-footer: false
 header-left: "\\leftmark"
 header-right: "\\rightmark"
-footer-left: "Reverse Engineering Embedded Firmware with radare2"
+footer-left: "Practical Reverse Engineering"
 footer-right: "\\thepage"
 code-block-font-size: \footnotesize
 header-includes:
@@ -49,6 +49,14 @@ header-includes:
   - \newtcolorbox{warnbox}{colback=red!5!white,colframe=red!60!black,fonttitle=\bfseries,title=Warning,breakable,arc=1mm,boxrule=0.5pt,left=4pt,right=4pt,top=4pt,bottom=4pt}
   - \newtcolorbox{tipbox}{colback=green!4!white,colframe=green!45!black,fonttitle=\bfseries,title=Tip,breakable,arc=1mm,boxrule=0.5pt,left=4pt,right=4pt,top=4pt,bottom=4pt}
   - \newtcolorbox{cautionbox}{colback=orange!5!white,colframe=orange!75!black,fonttitle=\bfseries,title=Caution,breakable,arc=1mm,boxrule=0.5pt,left=4pt,right=4pt,top=4pt,bottom=4pt}
+  # Widen TOC number columns so two-digit subsection numbers (33.10,
+  # 34.16, …) don't collide with section titles. Applies to chapter,
+  # section, subsection, subsubsection levels via KOMA-Script's
+  # tocnumwidth option.
+  - \RedeclareSectionCommand[tocnumwidth=2.6em]{chapter}
+  - \RedeclareSectionCommand[tocnumwidth=3.3em]{section}
+  - \RedeclareSectionCommand[tocnumwidth=4.2em]{subsection}
+  - \RedeclareSectionCommand[tocnumwidth=5em]{subsubsection}
 mainfont: "Charter"
 sansfont: "Helvetica Neue"
 monofont: "Menlo"

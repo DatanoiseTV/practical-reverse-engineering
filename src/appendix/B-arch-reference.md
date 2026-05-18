@@ -1,4 +1,4 @@
-# Appendix B: Architecture Quick Reference
+# Architecture Quick Reference
 
 Per-architecture summary of registers, calling conventions, and the
 disassembly idioms you see most often. Use as a desk reference.

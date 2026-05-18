@@ -1,4 +1,12 @@
 build/
+web/dist/
+web/node_modules/
+web/front/
+web/part*/
+web/appendix/
+web/index.md
+web/.vitepress/sidebar.json
+web/.vitepress/cache/
 *.aux
 *.log
 *.out

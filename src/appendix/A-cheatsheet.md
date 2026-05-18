@@ -1,4 +1,8 @@
-# Appendix A: Command Cheatsheet
+```{=latex}
+\appendix
+```
+
+# Command Cheatsheet
 
 Commands grouped by task. Most have variants (`j` for JSON, `q` for
 quiet, `*` for replayable form); see the relevant chapter.
