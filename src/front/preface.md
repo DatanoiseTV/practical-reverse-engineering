@@ -111,6 +111,17 @@ flash and OTP gotchas). The chapters are grounded in published
 research and the available open-source tooling (ChipWhisperer,
 JTAGulator) rather than invented exploits.
 
+**Part VII — Protocols and Fuzzing** turns from passive analysis to
+active interaction with the device under test. Chapters cover USB
+protocol reverse engineering (descriptors, capture with Wireshark
+and dedicated analysers, libusb / pyusb scripting), CAN bus and
+automotive ECU work (SocketCAN, OBD-II, UDS over ISO-TP, security
+access, firmware extraction), Bluetooth and BLE (GAP/GATT, the
+Nordic nRF Sniffer and Ubertooth, bleak scripting, pairing and
+encryption), and fuzzing embedded targets (re-hosting with
+HALucinator / Fuzzware / Avatar2, protocol fuzzing with boofuzz,
+crash triage, and real-world published results).
+
 The **appendices** are designed to live next to your keyboard: a
 command cheatsheet organised by task, a per-architecture quick
 reference for registers and calling conventions, a file-format

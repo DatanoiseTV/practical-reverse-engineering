@@ -147,6 +147,7 @@ PARTS = [
     ("part4", "Part IV — Firmware and Linux Workflows"),
     ("part5", "Part V — Automation, Tools, and Practice"),
     ("part6", "Part VI — Hardware Attacks"),
+    ("part7", "Part VII — Protocols and Fuzzing"),
 ]
 for slug, title in PARTS:
     items = chapters(slug)

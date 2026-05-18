@@ -4,8 +4,9 @@ A practical handbook on reverse engineering — covering embedded
 firmware (ARM Cortex-M, Xtensa/ESP32, RISC-V, 8051), Linux userland
 (Cortex-A daemons, stripped binaries, packers, malware patterns),
 Linux kernel modules + device trees (DTB/DTS), MIPS-based router
-firmware, plus hardware attacks (fault injection, side-channel
-analysis, debug-port discovery, OTP/flash gotchas).
+firmware, hardware attacks (fault injection, side-channel
+analysis, debug-port discovery, OTP/flash gotchas), and active
+techniques (USB / CAN / BLE protocol RE, fuzzing embedded targets).
 
 The book uses radare2 as its primary running example because it is
 the only fully free, fully open, fully scriptable disassembler with
@@ -69,6 +70,9 @@ src/
                     LLM-assisted RE, playbook, caveats
   part6/  3 ch      hardware attacks: fault injection / glitching,
                     side-channel analysis, hardware tricks and pitfalls
+  part7/  4 ch      protocols and fuzzing: USB protocol RE, CAN +
+                    automotive ECU RE, Bluetooth / BLE, fuzzing
+                    embedded targets
   appendix/  4 ch   command cheatsheet, arch reference,
                     file formats, further reading
 template/           Eisvogel LaTeX template + Lua filter for callouts

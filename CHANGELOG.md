@@ -4,6 +4,49 @@ All notable changes to this book are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions
 follow [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] — 2026-05-18
+
+Added Part VII — Protocols and Fuzzing (4 new chapters):
+
+- **Chapter 34 — USB Protocol Reverse Engineering.** USB
+  descriptor model and standard classes (HID, CDC, MSC, DFU).
+  Capture with Wireshark + usbmon (Linux), USBPcap (Windows),
+  hardware analysers (Total Phase Beagle, Ellisys, LeCroy).
+  Talking back with libusb / pyusb / hidapi. Walks through DFU
+  as a special case and documents the vendor-protocol RE
+  workflow. Cites MouseJack, hardware-wallet SDKs, OpenRGB-class
+  community work.
+- **Chapter 35 — CAN Bus and Automotive ECU Reverse Engineering.**
+  CAN physical layer (ISO 11898), higher-layer protocols (ISO-TP,
+  UDS ISO 14229, OBD-II ISO 15765-4, SAE J1939). SocketCAN +
+  can-utils + SavvyCAN workflow. DBC files and OpenDBC. UDS
+  service catalogue (sessions, SecurityAccess, RequestUpload).
+  ECU firmware extraction overview. Cites Miller / Valasek Jeep
+  research, comma.ai OpenPilot, Car Hacker's Handbook. Includes
+  a legal note on US DMCA vehicle-RE exemptions.
+- **Chapter 36 — Bluetooth and BLE Protocol Reverse Engineering.**
+  BLE stack (PHY, LL, HCI, L2CAP, ATT, GATT, SMP, GAP). Tool
+  landscape: nRF Connect mobile, bleak (Python), nRF Sniffer,
+  Ubertooth, btlejack. Workflow against unknown peripherals.
+  Pairing and encryption (LE Legacy vs Secure Connections).
+  Cites SweynTooth (NTU), KNOB / BLURtooth / BLESA attacks,
+  hardware-wallet research, smart-lock vulnerabilities, Tesla
+  BLE relay research.
+- **Chapter 37 — Fuzzing Embedded Targets.** Why embedded
+  fuzzing is hard; four practical approaches (host-side parser
+  fuzzing, whole-firmware emulation, re-hosting with synthetic
+  peripherals, protocol fuzzing). Tools: AFL++, libFuzzer,
+  boofuzz, Avatar2. Re-hosting tools: HALucinator (USENIX 2020),
+  P²IM (USENIX 2020), Fuzzware (USENIX 2022), µAFL, GENESIS.
+  Crash detection on embedded; triage workflow. Real published
+  results.
+
+Repo topics added: usb-protocol, bluetooth, ble, can-bus,
+automotive-security, fuzzing.
+
+Bumped version 1.1.0 → 1.2.0 (semver MINOR: new chapters added
+without restructuring existing content).
+
 ## [1.1.0] — 2026-05-18
 
 Added Part VI — Hardware Attacks (3 new chapters):
