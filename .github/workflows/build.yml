@@ -82,7 +82,7 @@ jobs:
         run: |
           export PATH="$HOME/.local/pandoc/bin:$HOME/.local/bin:$PATH"
           pandoc --version | head -1
-          tectonic --version
+          tectonic -X --help >/dev/null && echo "tectonic OK"
           ./build.sh
 
       - name: Upload PDF artifact
