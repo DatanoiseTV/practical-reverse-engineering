@@ -4,9 +4,10 @@ All notable changes to this book are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions
 follow [Semantic Versioning](https://semver.org/).
 
-## [1.0.0] — 2026-05-17
+## [1.0.0] — 2026-05-18
 
-First public release. ~300 pages, 30 chapters + 4 appendices.
+First public release. ~290 pages, 30 chapters + 4 appendices.
+Web edition built with VitePress; PDF built with Pandoc + Tectonic.
 
 ### Contents
 
