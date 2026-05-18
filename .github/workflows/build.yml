@@ -122,7 +122,9 @@ jobs:
   deploy-pages:
     name: Deploy HTML to GitHub Pages
     needs: build-html
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Deploy on main pushes AND on v* tag pushes, so tagged releases
+    # also refresh the live site instead of leaving it behind.
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     runs-on: ubuntu-latest
     steps:
       - name: Download HTML artifact
