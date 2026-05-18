@@ -1,10 +1,11 @@
 # Practical Reverse Engineering
 
-A 300+ page practical handbook on reverse engineering — covering
-embedded firmware (ARM Cortex-M, Xtensa/ESP32, RISC-V, 8051),
-Linux userland (Cortex-A daemons, stripped binaries, packers,
-malware patterns), Linux kernel modules + device trees (DTB/DTS),
-and MIPS-based router firmware.
+A practical handbook on reverse engineering — covering embedded
+firmware (ARM Cortex-M, Xtensa/ESP32, RISC-V, 8051), Linux userland
+(Cortex-A daemons, stripped binaries, packers, malware patterns),
+Linux kernel modules + device trees (DTB/DTS), MIPS-based router
+firmware, plus hardware attacks (fault injection, side-channel
+analysis, debug-port discovery, OTP/flash gotchas).
 
 The book uses radare2 as its primary running example because it is
 the only fully free, fully open, fully scriptable disassembler with
@@ -66,6 +67,8 @@ src/
                     Linux userland
   part5/  6 ch      automation, broader toolkit, generic RE techniques,
                     LLM-assisted RE, playbook, caveats
+  part6/  3 ch      hardware attacks: fault injection / glitching,
+                    side-channel analysis, hardware tricks and pitfalls
   appendix/  4 ch   command cheatsheet, arch reference,
                     file formats, further reading
 template/           Eisvogel LaTeX template + Lua filter for callouts

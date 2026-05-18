@@ -82,7 +82,7 @@ layout: home
 hero:
   name:     "Practical Reverse Engineering"
   text:     "A field guide for ARM, RISC-V, Xtensa, 8051, MIPS, and Linux."
-  tagline:  A 290-page open handbook covering embedded firmware (ARM Cortex-M, Xtensa/ESP32, RISC-V, 8051, MIPS), Linux userland, kernel modules and device trees, plus cross-target reverse-engineering techniques.
+  tagline:  An open handbook covering embedded firmware (ARM Cortex-M, Xtensa/ESP32, RISC-V, 8051, MIPS), Linux userland, kernel modules and device trees, hardware attacks (FI / SCA), plus cross-target reverse-engineering techniques.
   actions:
     - theme: brand
       text:  Start reading
@@ -95,8 +95,8 @@ hero:
       link:  https://github.com/DatanoiseTV/practical-reverse-engineering
 
 features:
-  - title: 30 chapters, 4 appendices
-    details: ~290 pages, organised into five parts plus a command cheatsheet, architecture quick reference, file-format catalogue, and curated further reading.
+  - title: Six parts, plus appendices
+    details: Foundations, static analysis, architectures, firmware and Linux workflows, automation and tooling, and hardware attacks — plus a command cheatsheet, architecture quick reference, file-format catalogue, and curated further reading.
   - title: Every common embedded target
     details: ARM Cortex-M (STM32/nRF/SAMD), ARM Cortex-A and Linux userland, Xtensa (ESP32), RISC-V (ESP32-C, BL602), 8051, MIPS routers, plus Linux drivers and the device tree.
   - title: radare2 as the daily-driver tool
@@ -146,6 +146,7 @@ PARTS = [
     ("part3", "Part III — Architectures"),
     ("part4", "Part IV — Firmware and Linux Workflows"),
     ("part5", "Part V — Automation, Tools, and Practice"),
+    ("part6", "Part VI — Hardware Attacks"),
 ]
 for slug, title in PARTS:
     items = chapters(slug)

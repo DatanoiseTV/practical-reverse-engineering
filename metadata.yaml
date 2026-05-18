@@ -3,7 +3,7 @@ title: "Practical Reverse Engineering"
 subtitle: "A Field Guide for ARM, RISC-V, Xtensa, 8051, MIPS, and Linux"
 author: "DatanoiseTV"
 date: "2026-05-17"
-version: "1.0.0"
+version: "1.1.0"
 lang: en-US
 documentclass: scrbook
 classoption:

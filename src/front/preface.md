@@ -102,6 +102,15 @@ playbook (recognition patterns, naming/note discipline, magic-number
 tables, dead-code hunting), and a final chapter of caveats, gotchas,
 and pitfalls.
 
+**Part VI — Hardware Attacks** covers what to do when the chip
+refuses to cooperate through normal channels: fault injection and
+glitching (voltage, clock, EM), side-channel analysis (SPA, DPA, CPA,
+timing attacks), and a survey of less-known hardware tricks and
+pitfalls (debug ports left in production, vendor boot ROM behaviour,
+flash and OTP gotchas). The chapters are grounded in published
+research and the available open-source tooling (ChipWhisperer,
+JTAGulator) rather than invented exploits.
+
 The **appendices** are designed to live next to your keyboard: a
 command cheatsheet organised by task, a per-architecture quick
 reference for registers and calling conventions, a file-format

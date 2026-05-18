@@ -14,6 +14,7 @@ for f in "$ROOT/src/part2"/*.md;    do SRC+=("$f"); done
 for f in "$ROOT/src/part3"/*.md;    do SRC+=("$f"); done
 for f in "$ROOT/src/part4"/*.md;    do SRC+=("$f"); done
 for f in "$ROOT/src/part5"/*.md;    do SRC+=("$f"); done
+for f in "$ROOT/src/part6"/*.md;    do SRC+=("$f"); done
 for f in "$ROOT/src/appendix"/*.md; do SRC+=("$f"); done
 
 if [ ${#SRC[@]} -eq 0 ]; then

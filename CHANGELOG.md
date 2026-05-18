@@ -4,10 +4,43 @@ All notable changes to this book are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions
 follow [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] — 2026-05-18
+
+Added Part VI — Hardware Attacks (3 new chapters):
+
+- **Chapter 31 — Fault Injection and Glitching.** Voltage, clock,
+  electromagnetic, and laser fault injection. Tool landscape
+  (ChipWhisperer, ChipSHOUTER, Riscure Inspector). Target
+  preparation, glitch parameter search, trigger setup. Documented
+  real-world results with citations (LimitedResults ESP32 / nRF52
+  bypasses, Kraken Security Labs Trezor PIN-counter glitch, STM32
+  RDP downgrade research, smartcard glitch literature).
+  Mitigations and defensive design patterns.
+- **Chapter 32 — Side-Channel Analysis.** Timing attacks (Kocher),
+  Simple / Differential / Correlation Power Analysis, EM analysis,
+  cache-timing context. Tool landscape (ChipWhisperer, lascar by
+  Ledger Donjon, Riscure Inspector). Worked workflow against a
+  software AES-128 implementation. Defences (constant-time,
+  masking, hiding).
+- **Chapter 33 — Hardware Tricks, Backdoors, and Less-Known
+  Pitfalls.** Debug interfaces left enabled in production
+  (JTAGulator, Glasgow Interface Explorer, Bus Pirate). Vendor
+  boot ROMs (STM32 System Bootloader, NXP ISP, SAM-BA, ESP ROM
+  bootloader, RP2040 BOOTSEL, Allwinner FEL). Flash erase bias /
+  read margin / OTP irreversibility / mass-erase surprises.
+  Vendor-specific recovery and test modes. "Encrypted" firmware
+  with hardcoded keys. Bench-discipline pitfalls.
+
+Repo metadata: removed page-count references from descriptions
+(book grows with each release; stating a specific number invites
+inaccuracy). Added repo topics: chipwhisperer, fault-injection,
+hardware-security, side-channel-analysis.
+
 ## [1.0.0] — 2026-05-18
 
-First public release. ~290 pages, 30 chapters + 4 appendices.
-Web edition built with VitePress; PDF built with Pandoc + Tectonic.
+First public release. 30 chapters plus 4 appendices, organised
+into five parts. Web edition built with VitePress; PDF built with
+Pandoc + Tectonic.
 
 ### Contents
 
