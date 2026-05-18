@@ -9,6 +9,12 @@ export default defineConfig({
   cleanUrls:   true,
   lastUpdated: true,
 
+  // GitHub Pages serves project sites under /<repo-name>/. The CI
+  // workflow sets BASE to "/practical-reverse-engineering/"; local
+  // builds default to "/" so `vitepress preview` works on
+  // http://localhost:4173/ without surgery.
+  base: process.env.BASE || "/",
+
   // VitePress resolves outDir relative to srcDir (which is web/ here),
   // so this lands at web/dist/.
   outDir: "dist",

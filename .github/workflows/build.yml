@@ -105,6 +105,11 @@ jobs:
           cache-dependency-path: web/package.json
 
       - name: Build HTML
+        env:
+          # GitHub Pages serves project sites under /<repo>/ — VitePress
+          # needs `base` set or its absolute asset URLs (/assets/…)
+          # will 404 once deployed.
+          BASE: /practical-reverse-engineering/
         run: ./scripts/build-html.sh
 
       - name: Upload HTML artifact
