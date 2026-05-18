@@ -4,6 +4,26 @@ All notable changes to this book are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions
 follow [Semantic Versioning](https://semver.org/).
 
+## [1.2.1] — 2026-05-18
+
+Added a **Notice** page as front matter, appearing before the
+preface in both the PDF and the web edition. Covers:
+
+- Use only on systems you have authorization to test
+- Jurisdictional legal context (CFAA, DMCA §1201, CMA 1990,
+  NIS2 / CRA, StGB §202, Cybercrime Act 2001, etc.) with
+  the disclaimer that it is not legal advice
+- Hardware safety expectations (current-limited supply, ESD,
+  battery thermal risk, laser safety)
+- Coordinated disclosure process (vendor PSIRT, ISO/IEC 29147
+  / 30111, CVE assignment via MITRE)
+- "No warranty" statement and license restatement
+
+Build pipeline:
+- VitePress SUMMARY generator picks up `front/notice.md` and lists
+  it before the preface
+- PDF build picks up the new file by glob ordering automatically
+
 ## [1.2.0] — 2026-05-18
 
 Added Part VII — Protocols and Fuzzing (4 new chapters):

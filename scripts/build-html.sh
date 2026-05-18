@@ -86,7 +86,7 @@ hero:
   actions:
     - theme: brand
       text:  Start reading
-      link:  /front/preface
+      link:  /front/notice
     - theme: alt
       text:  Download PDF
       link:  https://github.com/DatanoiseTV/practical-reverse-engineering/releases/latest
@@ -132,13 +132,14 @@ def chapters(slug):
 # different per route. We use the simple "same on every page" form.
 sidebar = []
 
-# Preface (single link, no group title).
-pre = ROOT / "front" / "preface.md"
-if pre.exists():
-    sidebar.append({
-        "text":  "Front matter",
-        "items": [{"text": "Preface", "link": "/front/preface"}],
-    })
+# Front matter (Notice + Preface, in that order).
+front_items = []
+for slug, title in [("notice", "Notice"), ("preface", "Preface")]:
+    p = ROOT / "front" / f"{slug}.md"
+    if p.exists():
+        front_items.append({"text": title, "link": f"/front/{slug}"})
+if front_items:
+    sidebar.append({"text": "Front matter", "items": front_items})
 
 PARTS = [
     ("part1", "Part I — Foundations"),
